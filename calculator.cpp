@@ -196,6 +196,7 @@
      QString pattern = "\\s+"; 
       QRegExp regex(pattern); 
 QString str = editDisplay->document()->toPlainText(); 
+str = str.trimmed(); 
    QStringList splitted =  str.split(regex);
    qDebug() << splitted ; 
  
@@ -207,8 +208,21 @@ QVector<double> operands ;
 }
    operands.push_back(splitted.at(splitted.size()-1).toDouble()); 
  
+   //scanning 
+   for (QString &str : splitted) {
+	   bool b1 = (str == "+" || str == "-" || str == "*" || str == "/"); 
+	   QRegExp regex("\\d+"); 
+	   //bool b2 = (str == "0" || str == "1" || str == "2" || str == "3" || str == "4" || str == "5" || str == "6" || str == "7" || str == "8"
+		  // || str == "9"); 
+	   bool b2 = regex.exactMatch(str); 
+	   if (!b1  && !b2) {
+		   throw exception("invalid input"); 
+	   }
+	}
+
+
   double res ; 
-   while(!operands.isEmpty()) {
+   while(!operators.isEmpty()) {
      QString op  = operators.takeFirst(); 
    double n1 = operands.takeFirst(), 
    n2 = operands.takeFirst(); 
@@ -219,9 +233,12 @@ QVector<double> operands ;
    else if(op == "/") res = n1 / n2 ; 
 
 
-      operands.push_back(res);        
+      operands.push_front(res);        
 }
    
+
+   if (!operators.isEmpty() || operands.size() != 1) throw exception("invalid input"); 
+
 QTextStream out(&str); 
  out << " = " << res ; 
   editDisplay->document()->setPlainText(str);   
